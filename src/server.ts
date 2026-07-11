@@ -1,34 +1,63 @@
 import "dotenv/config";
 
 import { app } from "./app.js";
+import {
+  closeDatabaseConnection,
+  connectToDatabase,
+} from "./database/mongodb.js";
+import { createDatabaseIndexes } from "./database/indexes.js";
 
 const port = Number(process.env.PORT) || 5000;
 
-const server = app.listen(port, () => {
-  console.log(`MarketHub API running at http://localhost:${port}`);
-});
+async function startServer(): Promise<void> {
+  try {
+    await connectToDatabase();
+    await createDatabaseIndexes();
 
-const shutdown = (signal: string) => {
-  console.log(`${signal} received. Shutting down gracefully.`);
+    const server = app.listen(port, () => {
+      console.log(`MarketHub API running at http://localhost:${port}`);
+      console.log(`Better Auth running at http://localhost:${port}/api/auth`);
+    });
 
-  server.close((error) => {
-    if (error) {
-      console.error("Failed to close the server:", error);
-      process.exit(1);
+    let isShuttingDown = false;
+
+    async function shutdown(signal: string): Promise<void> {
+      if (isShuttingDown) {
+        return;
+      }
+
+      isShuttingDown = true;
+
+      console.log(`${signal} received. Shutting down gracefully.`);
+
+      server.close(async (error) => {
+        try {
+          if (error) {
+            console.error("HTTP server shutdown failed:", error);
+            process.exitCode = 1;
+          }
+
+          await closeDatabaseConnection();
+        } catch (shutdownError) {
+          console.error("Shutdown failed:", shutdownError);
+          process.exitCode = 1;
+        } finally {
+          process.exit();
+        }
+      });
     }
 
-    process.exit(0);
-  });
-};
+    process.on("SIGINT", () => {
+      void shutdown("SIGINT");
+    });
 
-process.on("SIGINT", () => shutdown("SIGINT"));
-process.on("SIGTERM", () => shutdown("SIGTERM"));
+    process.on("SIGTERM", () => {
+      void shutdown("SIGTERM");
+    });
+  } catch (error) {
+    console.error("Failed to start MarketHub API:", error);
+    process.exit(1);
+  }
+}
 
-// console.log({
-//   nodeEnv: process.env.NODE_ENV,
-//   port: process.env.PORT,
-//   frontendUrl: process.env.FRONTEND_URL,
-//   databaseName: process.env.MONGODB_DB_NAME,
-//   hasMongoUri: Boolean(process.env.MONGODB_URI),
-//   hasAuthSecret: Boolean(process.env.BETTER_AUTH_SECRET),
-// });
+void startServer();
