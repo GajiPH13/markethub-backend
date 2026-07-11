@@ -7,11 +7,13 @@ import {
 } from "./database/mongodb.js";
 import { createDatabaseIndexes } from "./database/indexes.js";
 
+  
 const port = Number(process.env.PORT) || 5000;
 
 async function startServer(): Promise<void> {
   try {
     await connectToDatabase();
+    
     await createDatabaseIndexes();
 
     const server = app.listen(port, () => {

@@ -5,6 +5,7 @@ import express from "express";
 import helmet from "helmet";
 import morgan from "morgan";
 import { toNodeHandler } from "better-auth/node";
+import { fromNodeHeaders } from "better-auth/node";
 import { getDatabase } from "./database/mongodb.js";
 import { auth } from "./modules/auth/auth.js";
 const frontendUrl = process.env.FRONTEND_URL;
@@ -31,6 +32,23 @@ app.all("/api/auth/*splat", toNodeHandler(auth));
 app.use(express.json({ limit: "1mb" }));
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
+app.get("/api/v1/auth/session", async (request, response) => {
+    const session = await auth.api.getSession({
+        headers: fromNodeHeaders(request.headers),
+    });
+    if (!session) {
+        response.status(401).json({
+            success: false,
+            message: "Authentication required.",
+        });
+        return;
+    }
+    response.status(200).json({
+        success: true,
+        message: "Session retrieved successfully.",
+        data: session,
+    });
+});
 app.get("/", (_request, response) => {
     response.status(200).json({
         success: true,

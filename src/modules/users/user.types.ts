@@ -1,19 +1,31 @@
-import type { ObjectId } from "mongodb";
-import type {
-  AccountStatus,
-  BaseDocument,
-  UserRole,
-} from "../../shared/types/common.types.js";
+export const USER_ROLES = ["customer", "seller", "admin"] as const;
 
-export interface UserDocument extends BaseDocument {
+export type UserRole = (typeof USER_ROLES)[number];
+
+export const USER_STATUSES = [
+  "active",
+  "suspended",
+  "blocked",
+] as const;
+
+export type UserStatus = (typeof USER_STATUSES)[number];
+
+export interface MarketplaceUser {
+  id: string;
+
   name: string;
   email: string;
   emailVerified: boolean;
   image?: string | null;
+
   role: UserRole;
-  status: AccountStatus;
+  status: UserStatus;
   isBlocked: boolean;
+
   phone?: string | null;
   address?: string | null;
-  sellerProfileId?: ObjectId | null;
+  sellerProfileId?: string | null;
+
+  createdAt: Date;
+  updatedAt: Date;
 }

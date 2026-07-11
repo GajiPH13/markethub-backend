@@ -7,11 +7,11 @@ import type {
   SellerApplicationDocument,
   SellerProfileDocument,
 } from "../modules/sellers/seller.types.js";
-import type { UserDocument } from "../modules/users/user.types.js";
+import type { MarketplaceUser } from "../modules/users/user.types.js";
 import { COLLECTIONS } from "./collections.js";
 import { getDatabase } from "./mongodb.js";
-export function getUsersCollection(): Collection<UserDocument> {
-  return getDatabase().collection<UserDocument>(COLLECTIONS.USERS);
+export function getUsersCollection(): Collection<MarketplaceUser> {
+  return getDatabase().collection<MarketplaceUser>(COLLECTIONS.USERS);
 }
 export function getCategoriesCollection(): Collection<CategoryDocument> {
   return getDatabase().collection<CategoryDocument>(COLLECTIONS.CATEGORIES);

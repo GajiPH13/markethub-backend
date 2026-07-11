@@ -33,7 +33,6 @@ export const auth = betterAuth({
 
   baseURL: betterAuthUrl,
   basePath: "/api/auth",
-
   secret: betterAuthSecret,
 
   database: mongodbAdapter(mongoDatabase, {
@@ -48,37 +47,50 @@ export const auth = betterAuth({
     maxPasswordLength: 128,
   },
 
-  user: {
-    modelName: "users",
+ user: {
+  modelName: "users",
 
-    additionalFields: {
-      role: {
-        type: "string",
-        required: false,
-        defaultValue: "customer",
-        input: false,
-      },
+  additionalFields: {
+    role: {
+      type: "string",
+      required: true,
+      defaultValue: "customer",
+      input: false,
+    },
 
-      status: {
-        type: "string",
-        required: false,
-        defaultValue: "active",
-        input: false,
-      },
+    status: {
+      type: "string",
+      required: true,
+      defaultValue: "active",
+      input: false,
+    },
 
-      isBlocked: {
-        type: "boolean",
-        required: false,
-        defaultValue: false,
-        input: false,
-      },
+    isBlocked: {
+      type: "boolean",
+      required: true,
+      defaultValue: false,
+      input: false,
+    },
 
-      phone: {
-        type: "string",
-        required: false,
-      },
+    phone: {
+      type: "string",
+      required: false,
+      input: true,
+    },
+
+    address: {
+      type: "string",
+      required: false,
+      input: true,
+    },
+
+    sellerProfileId: {
+      type: "string",
+      required: false,
+      input: false,
     },
   },
+},
 
   session: {
     expiresIn: 60 * 60 * 24 * 7,
