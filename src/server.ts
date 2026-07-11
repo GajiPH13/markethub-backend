@@ -23,3 +23,12 @@ const shutdown = (signal: string) => {
 
 process.on("SIGINT", () => shutdown("SIGINT"));
 process.on("SIGTERM", () => shutdown("SIGTERM"));
+
+// console.log({
+//   nodeEnv: process.env.NODE_ENV,
+//   port: process.env.PORT,
+//   frontendUrl: process.env.FRONTEND_URL,
+//   databaseName: process.env.MONGODB_DB_NAME,
+//   hasMongoUri: Boolean(process.env.MONGODB_URI),
+//   hasAuthSecret: Boolean(process.env.BETTER_AUTH_SECRET),
+// });
