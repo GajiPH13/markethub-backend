@@ -6,9 +6,11 @@ import helmet from "helmet";
 import morgan from "morgan";
 import { toNodeHandler } from "better-auth/node";
 import { fromNodeHeaders } from "better-auth/node";
-
+import { apiRouter } from "./routes/index.js";
 import { getDatabase } from "./database/mongodb.js";
 import { auth } from "./modules/auth/auth.js";
+import { errorHandler } from "./middleware/error-handler.js";
+import { notFoundHandler } from "./middleware/not-found.js";
 
 const frontendUrl = process.env.FRONTEND_URL;
 
@@ -29,7 +31,7 @@ app.use(
 
 app.use(helmet());
 app.use(compression());
-
+app.use("/api/v1", apiRouter);
 if (process.env.NODE_ENV !== "production") {
   app.use(morgan("dev"));
 }
@@ -93,4 +95,7 @@ app.get("/api/v1/health", async (_request, response) => {
       message: "MarketHub API is unavailable",
     });
   }
+  app.use(errorHandler);
+  app.use(notFoundHandler);
+  app.use(errorHandler);
 });
