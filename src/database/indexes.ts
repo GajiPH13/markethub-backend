@@ -57,56 +57,56 @@ export async function createDatabaseIndexes(): Promise<void> {
   ]);
 
   const productIndexes: IndexDescription[] = [
-  {
-    key: { slug: 1 },
-    name: "products_slug_unique",
-    unique: true,
-  },
-  {
-    key: { status: 1, createdAt: -1 },
-    name: "products_status_createdAt",
-  },
-  {
-    key: { status: 1, categoryId: 1, createdAt: -1 },
-    name: "products_status_category_createdAt",
-  },
-  {
-    key: { status: 1, sellerId: 1, createdAt: -1 },
-    name: "products_status_seller_createdAt",
-  },
-  {
-    key: { status: 1, price: 1 },
-    name: "products_status_price",
-  },
-  {
-    key: { status: 1, averageRating: -1 },
-    name: "products_status_rating",
-  },
-  {
-    key: { status: 1, salesCount: -1 },
-    name: "products_status_sales",
-  },
-  {
-    key: { status: 1, isFeatured: 1, createdAt: -1 },
-    name: "products_status_featured_createdAt",
-  },
-  {
-    key: {
-      name: "text",
-      brand: "text",
-      categoryName: "text",
-      shortDescription: "text",
+    {
+      key: { slug: 1 },
+      name: "products_slug_unique",
+      unique: true,
     },
-    name: "products_text_search",
-    weights: {
-      name: 10,
-      brand: 5,
-      categoryName: 3,
-      shortDescription: 1,
+    {
+      key: { status: 1, createdAt: -1 },
+      name: "products_status_createdAt",
     },
-    default_language: "english",
-  },
-];
+    {
+      key: { status: 1, categoryId: 1, createdAt: -1 },
+      name: "products_status_category_createdAt",
+    },
+    {
+      key: { status: 1, sellerId: 1, createdAt: -1 },
+      name: "products_status_seller_createdAt",
+    },
+    {
+      key: { status: 1, price: 1 },
+      name: "products_status_price",
+    },
+    {
+      key: { status: 1, averageRating: -1 },
+      name: "products_status_rating",
+    },
+    {
+      key: { status: 1, salesCount: -1 },
+      name: "products_status_sales",
+    },
+    {
+      key: { status: 1, isFeatured: 1, createdAt: -1 },
+      name: "products_status_featured_createdAt",
+    },
+    {
+      key: {
+        name: "text",
+        brand: "text",
+        categoryName: "text",
+        shortDescription: "text",
+      },
+      name: "products_text_search",
+      weights: {
+        name: 10,
+        brand: 5,
+        categoryName: 3,
+        shortDescription: 1,
+      },
+      default_language: "english",
+    },
+  ];
   await products.createIndexes(productIndexes);
 
   await sellerApplications.createIndexes([
@@ -172,5 +172,21 @@ export async function createDatabaseIndexes(): Promise<void> {
     },
   ]);
 
+  await sellerApplications.createIndexes([
+    {
+      key: {
+        userId: 1,
+        status: 1,
+      },
+      name: "seller_application_user_status",
+    },
+    {
+      key: {
+        status: 1,
+        createdAt: -1,
+      },
+      name: "sellerApplications_status_createdAt",
+    },
+  ]);
   console.log("MongoDB indexes created successfully.");
 }

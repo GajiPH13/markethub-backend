@@ -3,7 +3,7 @@ import type {
   Request,
   Response,
 } from "express";
-import { ObjectId } from "mongodb";
+// import { ObjectId } from "mongodb";
 
 import { getSellerProfilesCollection } from "../database/get-collections.js";
 import { ApiError } from "../shared/errors/api-error.js";
@@ -32,23 +32,24 @@ export async function requireApprovedSeller(
       return;
     }
 
-    if (!ObjectId.isValid(user.id)) {
-      next(
-        new ApiError(
-          400,
-          "The authenticated user ID is invalid.",
-          "INVALID_USER_ID",
-        ),
-      );
+    // if (!ObjectId.isValid(user.id)) {
+    //   next(
+    //     new ApiError(
+    //       400,
+    //       "The authenticated user ID is invalid.",
+    //       "INVALID_USER_ID",
+    //     ),
+    //   );
 
-      return;
-    }
+    //   return;
+    // }
 
     const sellerProfile =
-      await getSellerProfilesCollection().findOne({
-        userId: new ObjectId(user.id),
-        isApproved: true,
-      });
+  await getSellerProfilesCollection().findOne({
+    userId: user.id,
+    isApproved: true,
+    status: "approved",
+  });
 
     if (!sellerProfile) {
       next(
