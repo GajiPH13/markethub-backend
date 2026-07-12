@@ -1,10 +1,7 @@
 import { betterAuth } from "better-auth";
 import { mongodbAdapter } from "better-auth/adapters/mongodb";
 
-import {
-  mongoClient,
-  mongoDatabase,
-} from "../../database/mongodb.js";
+import { mongoClient, mongoDatabase } from "../../database/mongodb.js";
 
 const frontendUrl = process.env.FRONTEND_URL;
 const betterAuthUrl = process.env.BETTER_AUTH_URL;
@@ -45,52 +42,74 @@ export const auth = betterAuth({
     enabled: true,
     minPasswordLength: 8,
     maxPasswordLength: 128,
-  },
 
- user: {
-  modelName: "users",
+    resetPasswordTokenExpiresIn: 60 * 60,
+    revokeSessionsOnPasswordReset: true,
 
-  additionalFields: {
-    role: {
-      type: "string",
-      required: true,
-      defaultValue: "customer",
-      input: false,
+    sendResetPassword: async ({ user, url }) => {
+      if (process.env.NODE_ENV !== "production") {
+        console.log("Password reset requested:", {
+          email: user.email,
+          resetUrl: url,
+        });
+
+        return;
+      }
+
+      // Replace this with your production email service.
+      // Do not log reset links in production.
+      console.error("Password reset email service is not configured.");
     },
 
-    status: {
-      type: "string",
-      required: true,
-      defaultValue: "active",
-      input: false,
-    },
-
-    isBlocked: {
-      type: "boolean",
-      required: true,
-      defaultValue: false,
-      input: false,
-    },
-
-    phone: {
-      type: "string",
-      required: false,
-      input: true,
-    },
-
-    address: {
-      type: "string",
-      required: false,
-      input: true,
-    },
-
-    sellerProfileId: {
-      type: "string",
-      required: false,
-      input: false,
+    onPasswordReset: async ({ user }) => {
+      console.log(`Password reset completed for ${user.email}`);
     },
   },
-},
+
+  user: {
+    modelName: "users",
+
+    additionalFields: {
+      role: {
+        type: "string",
+        required: true,
+        defaultValue: "customer",
+        input: false,
+      },
+
+      status: {
+        type: "string",
+        required: true,
+        defaultValue: "active",
+        input: false,
+      },
+
+      isBlocked: {
+        type: "boolean",
+        required: true,
+        defaultValue: false,
+        input: false,
+      },
+
+      phone: {
+        type: "string",
+        required: false,
+        input: true,
+      },
+
+      address: {
+        type: "string",
+        required: false,
+        input: true,
+      },
+
+      sellerProfileId: {
+        type: "string",
+        required: false,
+        input: false,
+      },
+    },
+  },
 
   session: {
     expiresIn: 60 * 60 * 24 * 7,
