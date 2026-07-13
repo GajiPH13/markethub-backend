@@ -10,18 +10,15 @@ import {
   requireApprovedSeller,
 } from "../../middleware/require-approved-seller.js";
 import {
-  getCurrentSellerProfile,
-} from "./seller.controller.js";
+  createProductHandler,
+} from "./product.controller.js";
 
-export const sellerRouter = Router();
+export const productRouter = Router();
 
-sellerRouter.use(
+productRouter.post(
+  "/",
   authenticate,
   requireActiveUser,
   requireApprovedSeller,
-);
-
-sellerRouter.get(
-  "/me",
-  getCurrentSellerProfile,
+  createProductHandler,
 );

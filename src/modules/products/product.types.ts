@@ -1,38 +1,40 @@
-import type { ObjectId } from "mongodb";
 import type {
-  BaseDocument,
-  ProductStatus,
-} from "../../shared/types/common.types.js";
-export interface ProductSpecification {
-  name: string;
-  value: string;
-}
-export interface ProductImage {
-  url: string;
-  alt: string;
-  isPrimary: boolean;
-}
-export interface ProductDocument extends BaseDocument {
-  sellerId: ObjectId;
+  ObjectId,
+} from "mongodb";
+
+export type ProductStatus =
+  | "draft"
+  | "active"
+  | "inactive";
+
+export interface ProductDocument {
+  _id?: ObjectId;
+
+  sellerId: string;
+  sellerUserId: string;
+
   name: string;
   slug: string;
-  shortDescription: string;
   description: string;
-  images: ProductImage[];
-  categoryId: ObjectId;
-  categoryName: string;
-  brand: string;
+
+  category: string;
+  brand: string | null;
+
   price: number;
-  discountPrice?: number | null;
+  compareAtPrice: number | null;
+
   stock: number;
-  specifications: ProductSpecification[];
+  sku: string | null;
+
+  imageUrls: string[];
+
+  status: ProductStatus;
+  isFeatured: boolean;
+
   averageRating: number;
   reviewCount: number;
-  status: ProductStatus;
-  rejectionReason?: string | null;
-  isFeatured: boolean;
-  salesCount: number;
-  viewCount: number;
-  approvedAt?: Date | null;
-  approvedBy?: ObjectId | null;
+  totalSales: number;
+
+  createdAt: Date;
+  updatedAt: Date;
 }
