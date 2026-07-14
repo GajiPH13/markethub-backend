@@ -9,16 +9,20 @@ import type {
 } from "../../shared/types/express.types.js";
 import {
   createProductSchema,
+  productIdParamsSchema,
+  productSlugParamsSchema,
+  publicProductQuerySchema,
   sellerProductQuerySchema,
   updateProductSchema,
-  productIdParamsSchema,
 } from "./product.schema.js";
 import {
   createProduct,
-  getSellerProducts,
-  getSellerProductById,
-  updateSellerProduct,
   deleteSellerProduct,
+  getPublicProductBySlug,
+  getPublicProducts,
+  getSellerProductById,
+  getSellerProducts,
+  updateSellerProduct,
 } from "./product.service.js";
 
 import { ApiError } from "../../shared/errors/api-error.js";
@@ -196,6 +200,87 @@ export async function deleteSellerProductHandler(
       message:
         "Product deleted successfully.",
       data: null,
+    });
+  } catch (error) {
+    next(error);
+  }
+}
+export async function getPublicProductsHandler(
+  request: Request,
+  response: Response,
+  next: NextFunction,
+): Promise<void> {
+  try {
+    const query =
+      publicProductQuerySchema.parse(
+        request.query,
+      );
+
+    const result =
+      await getPublicProducts({
+        sort: query.sort,
+        page: query.page,
+        limit: query.limit,
+
+        ...(query.search
+          ? {
+              search: query.search,
+            }
+          : {}),
+
+        ...(query.category
+          ? {
+              category: query.category,
+            }
+          : {}),
+
+        ...(query.minPrice !== undefined
+          ? {
+              minPrice: query.minPrice,
+            }
+          : {}),
+
+        ...(query.maxPrice !== undefined
+          ? {
+              maxPrice: query.maxPrice,
+            }
+          : {}),
+      });
+
+    response.status(200).json({
+      success: true,
+      message:
+        "Products retrieved successfully.",
+      data: result,
+    });
+  } catch (error) {
+    next(error);
+  }
+}
+
+export async function getPublicProductBySlugHandler(
+  request: Request,
+  response: Response,
+  next: NextFunction,
+): Promise<void> {
+  try {
+    const params =
+      productSlugParamsSchema.parse(
+        request.params,
+      );
+
+    const product =
+      await getPublicProductBySlug(
+        params.slug,
+      );
+
+    response.status(200).json({
+      success: true,
+      message:
+        "Product retrieved successfully.",
+      data: {
+        product,
+      },
     });
   } catch (error) {
     next(error);

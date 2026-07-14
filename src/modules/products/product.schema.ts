@@ -209,3 +209,106 @@ export type SellerProductQueryInput =
   z.infer<
     typeof sellerProductQuerySchema
   >;
+export const publicProductQuerySchema =
+  z.object({
+    search: z
+      .string()
+      .trim()
+      .max(
+        100,
+        "Search cannot exceed 100 characters.",
+      )
+      .optional(),
+
+    category: z
+      .string()
+      .trim()
+      .max(
+        80,
+        "Category cannot exceed 80 characters.",
+      )
+      .optional(),
+
+    minPrice: z.coerce
+      .number()
+      .min(
+        0,
+        "Minimum price cannot be negative.",
+      )
+      .optional(),
+
+    maxPrice: z.coerce
+      .number()
+      .positive(
+        "Maximum price must be greater than zero.",
+      )
+      .optional(),
+
+    sort: z
+      .enum([
+        "newest",
+        "price-low",
+        "price-high",
+      ])
+      .default("newest"),
+
+    page: z.coerce
+      .number()
+      .int(
+        "Page must be a whole number.",
+      )
+      .min(
+        1,
+        "Page must be at least 1.",
+      )
+      .default(1),
+
+    limit: z.coerce
+      .number()
+      .int(
+        "Limit must be a whole number.",
+      )
+      .min(
+        1,
+        "Limit must be at least 1.",
+      )
+      .max(
+        50,
+        "Limit cannot exceed 50.",
+      )
+      .default(12),
+  })
+  .superRefine((value, context) => {
+    if (
+      value.minPrice !== undefined &&
+      value.maxPrice !== undefined &&
+      value.minPrice > value.maxPrice
+    ) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["maxPrice"],
+        message:
+          "Maximum price must be greater than or equal to minimum price.",
+      });
+    }
+  });
+
+export const productSlugParamsSchema =
+  z.object({
+    slug: z
+      .string()
+      .trim()
+      .min(
+        1,
+        "Product slug is required.",
+      )
+      .max(
+        160,
+        "Product slug is too long.",
+      ),
+  });
+
+export type PublicProductQueryInput =
+  z.infer<
+    typeof publicProductQuerySchema
+  >;

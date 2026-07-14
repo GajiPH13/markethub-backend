@@ -12,6 +12,8 @@ import {
 import {
   createProductHandler,
   deleteSellerProductHandler,
+  getPublicProductBySlugHandler,
+  getPublicProductsHandler,
   getSellerProductByIdHandler,
   getSellerProductsHandler,
   updateSellerProductHandler,
@@ -19,6 +21,22 @@ import {
 
 export const productRouter = Router();
 
+/*
+ * Public routes
+ */
+productRouter.get(
+  "/",
+  getPublicProductsHandler,
+);
+
+productRouter.get(
+  "/slug/:slug",
+  getPublicProductBySlugHandler,
+);
+
+/*
+ * Protected seller routes
+ */
 productRouter.use(
   authenticate,
   requireActiveUser,

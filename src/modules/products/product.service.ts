@@ -28,6 +28,18 @@ interface GetSellerProductsOptions {
   page: number;
   limit: number;
 }
+interface GetPublicProductsOptions {
+  search?: string;
+  category?: string;
+  minPrice?: number;
+  maxPrice?: number;
+  sort:
+    | "newest"
+    | "price-low"
+    | "price-high";
+  page: number;
+  limit: number;
+}
 
 function parseProductId(
   productId: string,
@@ -428,4 +440,102 @@ export async function deleteSellerProduct(
       },
     },
   );
+}
+export async function getPublicProducts({
+  search,
+  category,
+  minPrice,
+  maxPrice,
+  sort,
+  page,
+  limit,
+}: GetPublicProductsOptions) {
+  const products = getProductsCollection();
+
+  const filter: Filter<ProductDocument> = {
+    status: "active",
+  };
+
+  if (category) {
+    filter.category = category;
+  }
+
+  if (
+    minPrice !== undefined ||
+    maxPrice !== undefined
+  ) {
+    filter.price = {};
+
+    if (minPrice !== undefined) {
+      filter.price.$gte = minPrice;
+    }
+
+    if (maxPrice !== undefined) {
+      filter.price.$lte = maxPrice;
+    }
+  }
+
+  if (search) {
+    filter.$text = {
+      $search: search,
+    };
+  }
+
+  const sortOptions =
+    sort === "price-low"
+      ? {
+          price: 1 as const,
+        }
+      : sort === "price-high"
+        ? {
+            price: -1 as const,
+          }
+        : {
+            createdAt: -1 as const,
+          };
+
+  const skip = (page - 1) * limit;
+
+  const [items, total] = await Promise.all([
+    products
+      .find(filter)
+      .sort(sortOptions)
+      .skip(skip)
+      .limit(limit)
+      .toArray(),
+
+    products.countDocuments(filter),
+  ]);
+
+  return {
+    items,
+    pagination: {
+      page,
+      limit,
+      total,
+      totalPages:
+        total === 0
+          ? 0
+          : Math.ceil(total / limit),
+    },
+  };
+}
+export async function getPublicProductBySlug(
+  slug: string,
+): Promise<WithId<ProductDocument>> {
+  const product =
+    await getProductsCollection().findOne({
+      slug,
+      status: "active",
+    });
+
+  if (!product) {
+    throw new ApiError(
+      404,
+      "Product was not found.",
+      "PRODUCT_NOT_FOUND",
+    );
+  }
+
+  return product;
 }
