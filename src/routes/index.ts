@@ -5,6 +5,7 @@ import { sellerApplicationRouter } from "../modules/seller-applications/seller-a
 import { sellerRouter } from "../modules/sellers/seller.routes.js";
 import { userRouter } from "../modules/users/user.routes.js";
 import { productRouter } from "../modules/products/product.routes.js";
+import { orderRouter } from "../modules/orders/order.routes.js";
 export const apiRouter = Router();
 
 apiRouter.use("/users", userRouter);
@@ -13,3 +14,4 @@ apiRouter.use("/admin", adminRouter);
 apiRouter.use("/sellers", sellerRouter);
 apiRouter.use("/products", productRouter);
 apiRouter.use("/cart", cartRouter);
+apiRouter.use("/orders", orderRouter);

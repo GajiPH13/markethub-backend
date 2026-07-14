@@ -9,7 +9,7 @@ import type { SellerProfileDocument } from "../modules/sellers/seller.types.js";
 import type { MarketplaceUser } from "../modules/users/user.types.js";
 import { COLLECTIONS } from "./collections.js";
 import { getDatabase } from "./mongodb.js";
-
+import type { OrderDocument } from "../modules/orders/order.types.js";
 export function getUsersCollection(): Collection<MarketplaceUser> {
   return getDatabase().collection<MarketplaceUser>(COLLECTIONS.USERS);
 }
@@ -44,7 +44,8 @@ export function getNotificationsCollection(): Collection<NotificationDocument> {
   );
 }
 export function getCartsCollection(): Collection<CartDocument> {
-  return getDatabase().collection<CartDocument>(
-    "carts",
-  );
+  return getDatabase().collection<CartDocument>("carts");
+}
+export function getOrdersCollection(): Collection<OrderDocument> {
+  return getDatabase().collection<OrderDocument>("orders");
 }

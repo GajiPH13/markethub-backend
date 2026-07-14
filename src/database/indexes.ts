@@ -1,5 +1,5 @@
 import type { IndexDescription } from "mongodb";
-
+  
 import { getCategoriesCollection } from "./get-collections.js";
 import {
   getNotificationsCollection,
@@ -9,6 +9,7 @@ import {
   getSellerProfilesCollection,
   getUsersCollection,
   getCartsCollection,
+  getOrdersCollection,
 } from "./get-collections.js";
 
 export async function createDatabaseIndexes(): Promise<void> {
@@ -20,6 +21,7 @@ export async function createDatabaseIndexes(): Promise<void> {
   const reviews = getReviewsCollection();
   const notifications = getNotificationsCollection();
   const carts = getCartsCollection();
+  const orders = getOrdersCollection();
   await users.createIndexes([
     {
       key: { email: 1 },
@@ -204,5 +206,35 @@ export async function createDatabaseIndexes(): Promise<void> {
       name: "sellerApplications_status_createdAt",
     },
   ]);
+
+  await orders.createIndexes([
+  {
+    key: {
+      orderNumber: 1,
+    },
+    name: "orders_orderNumber_unique",
+    unique: true,
+  },
+  {
+    key: {
+      customerUserId: 1,
+      createdAt: -1,
+    },
+    name: "orders_customer_createdAt",
+  },
+  {
+    key: {
+      "items.sellerUserId": 1,
+      createdAt: -1,
+    },
+    name: "orders_seller_createdAt",
+  },
+  {
+    key: {
+      orderStatus: 1,
+    },
+    name: "orders_orderStatus",
+  },
+]);
   console.log("MongoDB indexes created successfully.");
 }

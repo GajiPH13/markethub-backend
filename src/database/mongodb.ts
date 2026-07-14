@@ -64,6 +64,10 @@ export function getDatabase(): Db {
   return mongoDatabase;
 }
 
+export function getMongoClient(): MongoClient {
+  return mongoClient;
+}
+
 export async function closeDatabaseConnection(): Promise<void> {
   await mongoClient.close();
 
