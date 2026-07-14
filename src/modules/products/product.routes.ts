@@ -11,7 +11,10 @@ import {
 } from "../../middleware/require-approved-seller.js";
 import {
   createProductHandler,
+  deleteSellerProductHandler,
+  getSellerProductByIdHandler,
   getSellerProductsHandler,
+  updateSellerProductHandler,
 } from "./product.controller.js";
 
 export const productRouter = Router();
@@ -25,6 +28,21 @@ productRouter.use(
 productRouter.get(
   "/seller/me",
   getSellerProductsHandler,
+);
+
+productRouter.get(
+  "/seller/me/:productId",
+  getSellerProductByIdHandler,
+);
+
+productRouter.patch(
+  "/seller/me/:productId",
+  updateSellerProductHandler,
+);
+
+productRouter.delete(
+  "/seller/me/:productId",
+  deleteSellerProductHandler,
 );
 
 productRouter.post(

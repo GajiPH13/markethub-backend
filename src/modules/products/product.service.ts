@@ -1,4 +1,9 @@
 
+import {
+  ObjectId,
+  type Filter,
+  type WithId,
+} from "mongodb";
 
 import {
   getProductsCollection,
@@ -10,13 +15,8 @@ import {
 } from "../../shared/utils/creat-slug.js";
 import type {
   CreateProductInput,
+  UpdateProductInput,
 } from "./product.schema.js";
-
-import type {
-  Filter,
-  WithId,
-} from "mongodb";
-
 import type {
   ProductDocument,
   ProductStatus,
@@ -28,6 +28,21 @@ interface GetSellerProductsOptions {
   page: number;
   limit: number;
 }
+
+function parseProductId(
+  productId: string,
+): ObjectId {
+  if (!ObjectId.isValid(productId)) {
+    throw new ApiError(
+      400,
+      "Invalid product ID.",
+      "INVALID_PRODUCT_ID",
+    );
+  }
+
+  return new ObjectId(productId);
+}
+
 async function createUniqueProductSlug(
   productName: string,
 ): Promise<string> {
@@ -43,6 +58,40 @@ async function createUniqueProductSlug(
     await products.findOne(
       {
         slug,
+      },
+      {
+        projection: {
+          _id: 1,
+        },
+      },
+    )
+  ) {
+    suffix += 1;
+    slug = `${baseSlug}-${suffix}`;
+  }
+
+  return slug;
+}
+
+async function createUniqueProductSlugForUpdate(
+  productName: string,
+  productId: ObjectId,
+): Promise<string> {
+  const products = getProductsCollection();
+
+  const baseSlug =
+    createSlug(productName) || "product";
+
+  let slug = baseSlug;
+  let suffix = 1;
+
+  while (
+    await products.findOne(
+      {
+        slug,
+        _id: {
+          $ne: productId,
+        },
       },
       {
         projection: {
@@ -156,7 +205,7 @@ export async function getSellerProducts({
     sellerUserId,
   };
 
-  if (status) {
+  if (status !== undefined) {
     filter.status = status;
   }
 
@@ -187,4 +236,196 @@ export async function getSellerProducts({
           : Math.ceil(total / limit),
     },
   };
+}
+
+export async function getSellerProductById(
+  productId: string,
+  sellerUserId: string,
+): Promise<WithId<ProductDocument>> {
+  const id = parseProductId(productId);
+
+  const product =
+    await getProductsCollection().findOne({
+      _id: id,
+      sellerUserId,
+    });
+
+  if (!product) {
+    throw new ApiError(
+      404,
+      "Product was not found.",
+      "PRODUCT_NOT_FOUND",
+    );
+  }
+
+  return product;
+}
+
+export async function updateSellerProduct(
+  productId: string,
+  sellerUserId: string,
+  input: UpdateProductInput,
+): Promise<WithId<ProductDocument>> {
+  const id = parseProductId(productId);
+
+  const products = getProductsCollection();
+
+  const existingProduct =
+    await products.findOne({
+      _id: id,
+      sellerUserId,
+    });
+
+  if (!existingProduct) {
+    throw new ApiError(
+      404,
+      "Product was not found.",
+      "PRODUCT_NOT_FOUND",
+    );
+  }
+
+  const nextPrice =
+    input.price ??
+    existingProduct.price;
+
+  const nextCompareAtPrice =
+    input.compareAtPrice !== undefined
+      ? input.compareAtPrice
+      : existingProduct.compareAtPrice;
+
+  if (
+    nextCompareAtPrice !== null &&
+    nextCompareAtPrice <= nextPrice
+  ) {
+    throw new ApiError(
+      400,
+      "Compare-at price must be greater than the regular price.",
+      "INVALID_COMPARE_AT_PRICE",
+    );
+  }
+
+  const update: Partial<ProductDocument> = {
+    updatedAt: new Date(),
+  };
+
+  if (input.name !== undefined) {
+    update.name = input.name;
+
+    if (
+      input.name !== existingProduct.name
+    ) {
+      update.slug =
+        await createUniqueProductSlugForUpdate(
+          input.name,
+          id,
+        );
+    }
+  }
+
+  if (input.description !== undefined) {
+    update.description =
+      input.description;
+  }
+
+  if (input.category !== undefined) {
+    update.category = input.category;
+  }
+
+  if (input.brand !== undefined) {
+    update.brand =
+      input.brand ?? null;
+  }
+
+  if (input.price !== undefined) {
+    update.price = input.price;
+  }
+
+  if (
+    input.compareAtPrice !== undefined
+  ) {
+    update.compareAtPrice =
+      input.compareAtPrice;
+  }
+
+  if (input.stock !== undefined) {
+    update.stock = input.stock;
+  }
+
+  if (input.sku !== undefined) {
+    update.sku =
+      input.sku ?? null;
+  }
+
+  if (input.imageUrls !== undefined) {
+    update.imageUrls =
+      input.imageUrls;
+  }
+
+  if (input.status !== undefined) {
+    update.status = input.status;
+  }
+
+  const updatedProduct =
+    await products.findOneAndUpdate(
+      {
+        _id: id,
+        sellerUserId,
+      },
+      {
+        $set: update,
+      },
+      {
+        returnDocument: "after",
+      },
+    );
+
+  if (!updatedProduct) {
+    throw new ApiError(
+      404,
+      "Product was not found.",
+      "PRODUCT_NOT_FOUND",
+    );
+  }
+
+  return updatedProduct;
+}
+
+export async function deleteSellerProduct(
+  productId: string,
+  sellerUserId: string,
+): Promise<void> {
+  const id = parseProductId(productId);
+
+  const products = getProductsCollection();
+
+  const deleteResult =
+    await products.deleteOne({
+      _id: id,
+      sellerUserId,
+    });
+
+  if (deleteResult.deletedCount === 0) {
+    throw new ApiError(
+      404,
+      "Product was not found.",
+      "PRODUCT_NOT_FOUND",
+    );
+  }
+
+  await getSellerProfilesCollection().updateOne(
+    {
+      userId: sellerUserId,
+      totalProducts: {
+        $gt: 0,
+      },
+    },
+    {
+      $inc: {
+        totalProducts: -1,
+      },
+      $set: {
+        updatedAt: new Date(),
+      },
+    },
+  );
 }
