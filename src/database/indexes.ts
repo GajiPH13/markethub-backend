@@ -8,6 +8,7 @@ import {
   getSellerApplicationsCollection,
   getSellerProfilesCollection,
   getUsersCollection,
+  getCartsCollection,
 } from "./get-collections.js";
 
 export async function createDatabaseIndexes(): Promise<void> {
@@ -18,7 +19,7 @@ export async function createDatabaseIndexes(): Promise<void> {
   const sellerProfiles = getSellerProfilesCollection();
   const reviews = getReviewsCollection();
   const notifications = getNotificationsCollection();
-
+  const carts = getCartsCollection();
   await users.createIndexes([
     {
       key: { email: 1 },
@@ -56,6 +57,21 @@ export async function createDatabaseIndexes(): Promise<void> {
     },
   ]);
 
+  await carts.createIndexes([
+  {
+    key: {
+      userId: 1,
+    },
+    name: "carts_userId_unique",
+    unique: true,
+  },
+  {
+    key: {
+      updatedAt: -1,
+    },
+    name: "carts_updatedAt",
+  },
+]);
   const productIndexes: IndexDescription[] = [
     {
       key: { slug: 1 },
