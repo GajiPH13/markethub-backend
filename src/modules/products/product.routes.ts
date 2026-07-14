@@ -11,14 +11,23 @@ import {
 } from "../../middleware/require-approved-seller.js";
 import {
   createProductHandler,
+  getSellerProductsHandler,
 } from "./product.controller.js";
 
 export const productRouter = Router();
 
-productRouter.post(
-  "/",
+productRouter.use(
   authenticate,
   requireActiveUser,
   requireApprovedSeller,
+);
+
+productRouter.get(
+  "/seller/me",
+  getSellerProductsHandler,
+);
+
+productRouter.post(
+  "/",
   createProductHandler,
 );

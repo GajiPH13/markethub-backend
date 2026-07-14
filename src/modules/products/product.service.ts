@@ -1,6 +1,4 @@
-import type {
-  WithId,
-} from "mongodb";
+
 
 import {
   getProductsCollection,
@@ -13,10 +11,23 @@ import {
 import type {
   CreateProductInput,
 } from "./product.schema.js";
+
+import type {
+  Filter,
+  WithId,
+} from "mongodb";
+
 import type {
   ProductDocument,
+  ProductStatus,
 } from "./product.types.js";
 
+interface GetSellerProductsOptions {
+  sellerUserId: string;
+  status?: ProductStatus;
+  page: number;
+  limit: number;
+}
 async function createUniqueProductSlug(
   productName: string,
 ): Promise<string> {
@@ -130,5 +141,50 @@ export async function createProduct(
   return {
     ...product,
     _id: result.insertedId,
+  };
+}
+
+export async function getSellerProducts({
+  sellerUserId,
+  status,
+  page,
+  limit,
+}: GetSellerProductsOptions) {
+  const products = getProductsCollection();
+
+  const filter: Filter<ProductDocument> = {
+    sellerUserId,
+  };
+
+  if (status) {
+    filter.status = status;
+  }
+
+  const skip = (page - 1) * limit;
+
+  const [items, total] = await Promise.all([
+    products
+      .find(filter)
+      .sort({
+        createdAt: -1,
+      })
+      .skip(skip)
+      .limit(limit)
+      .toArray(),
+
+    products.countDocuments(filter),
+  ]);
+
+  return {
+    items,
+    pagination: {
+      page,
+      limit,
+      total,
+      totalPages:
+        total === 0
+          ? 0
+          : Math.ceil(total / limit),
+    },
   };
 }

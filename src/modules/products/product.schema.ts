@@ -81,6 +81,7 @@ export const createProductSchema = z.object({
     ])
     .default("draft"),
 })
+
 .superRefine((value, context) => {
   if (
     value.compareAtPrice !== null &&
@@ -98,3 +99,29 @@ export const createProductSchema = z.object({
 
 export type CreateProductInput =
   z.infer<typeof createProductSchema>;
+
+  export const sellerProductQuerySchema = z.object({
+  status: z
+    .enum([
+      "draft",
+      "active",
+      "inactive",
+    ])
+    .optional(),
+
+  page: z.coerce
+    .number()
+    .int()
+    .min(1)
+    .default(1),
+
+  limit: z.coerce
+    .number()
+    .int()
+    .min(1)
+    .max(50)
+    .default(10),
+});
+
+export type SellerProductQueryInput =
+  z.infer<typeof sellerProductQuerySchema>;
