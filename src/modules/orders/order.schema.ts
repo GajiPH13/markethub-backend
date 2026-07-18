@@ -135,3 +135,143 @@ export const customerOrderQuerySchema =
 
 export type CreateOrderInput =
   z.infer<typeof createOrderSchema>;
+
+export const SELLER_ORDER_STATUSES = [
+  "pending",
+  "processing",
+  "shipped",
+  "delivered",
+  "cancelled",
+] as const;
+
+export const sellerOrderQuerySchema =
+  z.object({
+    status: z
+      .enum(SELLER_ORDER_STATUSES)
+      .optional(),
+
+    page: z.coerce
+      .number()
+      .int()
+      .min(1)
+      .default(1),
+
+    limit: z.coerce
+      .number()
+      .int()
+      .min(1)
+      .max(50)
+      .default(10),
+  });
+
+export const updateSellerOrderStatusSchema =
+  z.object({
+    status: z.enum(
+      SELLER_ORDER_STATUSES,
+    ),
+  });
+
+export type SellerOrderStatus =
+  (typeof SELLER_ORDER_STATUSES)[number];
+
+export type UpdateSellerOrderStatusInput =
+  z.infer<
+    typeof updateSellerOrderStatusSchema
+  >;
+  export const ORDER_STATUSES = [
+  "pending",
+  "confirmed",
+  "processing",
+  "shipped",
+  "delivered",
+  "cancelled",
+] as const;
+
+export const PAYMENT_STATUSES = [
+  "pending",
+  "paid",
+  "failed",
+  "refunded",
+] as const;
+
+export const adminOrderQuerySchema = z.object({
+  search: z
+    .string()
+    .trim()
+    .max(
+      100,
+      "Search cannot exceed 100 characters.",
+    )
+    .optional(),
+
+  orderStatus: z
+    .enum(ORDER_STATUSES)
+    .optional(),
+
+  paymentStatus: z
+    .enum(PAYMENT_STATUSES)
+    .optional(),
+
+  page: z.coerce
+    .number()
+    .int()
+    .min(1)
+    .default(1),
+
+  limit: z.coerce
+    .number()
+    .int()
+    .min(1)
+    .max(50)
+    .default(20),
+});
+
+export const updateAdminOrderStatusSchema =
+  z.object({
+    orderStatus: z
+      .enum(ORDER_STATUSES)
+      .optional(),
+
+    paymentStatus: z
+      .enum(PAYMENT_STATUSES)
+      .optional(),
+  })
+  .refine(
+    (value) =>
+      value.orderStatus !== undefined ||
+      value.paymentStatus !== undefined,
+    {
+      message:
+        "At least one status must be provided.",
+    },
+  );
+
+export type AdminOrderQueryInput =
+  z.infer<
+    typeof adminOrderQuerySchema
+  >;
+
+export type UpdateAdminOrderStatusInput =
+  z.infer<
+    typeof updateAdminOrderStatusSchema
+  >;
+  export const cancelCustomerOrderSchema =
+  z.object({
+    reason: z
+      .string()
+      .trim()
+      .min(
+        3,
+        "Cancellation reason must contain at least 3 characters.",
+      )
+      .max(
+        300,
+        "Cancellation reason cannot exceed 300 characters.",
+      )
+      .optional(),
+  });
+
+export type CancelCustomerOrderInput =
+  z.infer<
+    typeof cancelCustomerOrderSchema
+  >;

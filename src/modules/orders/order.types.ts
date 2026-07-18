@@ -1,6 +1,4 @@
-import type {
-  ObjectId,
-} from "mongodb";
+import type { ObjectId } from "mongodb";
 
 export type OrderStatus =
   | "pending"
@@ -10,11 +8,10 @@ export type OrderStatus =
   | "delivered"
   | "cancelled";
 
-export type PaymentStatus =
-  | "pending"
-  | "paid"
-  | "failed"
-  | "refunded";
+export type PaymentStatus = "pending" | "paid" | "failed" | "refunded";
+
+export type SellerOrderItemStatus =
+  "pending" | "processing" | "shipped" | "delivered" | "cancelled";
 
 export interface ShippingAddress {
   fullName: string;
@@ -40,6 +37,8 @@ export interface OrderItemDocument {
   price: number;
   quantity: number;
   lineTotal: number;
+
+  fulfillmentStatus: SellerOrderItemStatus;
 }
 
 export interface OrderDocument {
@@ -61,6 +60,61 @@ export interface OrderDocument {
   paymentStatus: PaymentStatus;
 
   customerNote: string | null;
+
+  cancellationReason: string | null;
+  cancelledAt: Date | null;
+  cancelledBy: string | null;
+
+  createdAt: Date;
+  updatedAt: Date;
+}
+export interface SellerOrderView {
+  _id: string;
+  orderNumber: string;
+  customerUserId: string;
+
+  items: OrderItemDocument[];
+
+  shippingAddress: ShippingAddress;
+
+  sellerSubtotal: number;
+  currency: "EUR";
+
+  orderStatus: OrderStatus;
+  paymentStatus: PaymentStatus;
+
+  customerNote: string | null;
+
+  cancellationReason: string | null;
+  cancelledAt: Date | null;
+  cancelledBy: string | null;
+
+  createdAt: Date;
+  updatedAt: Date;
+}
+export interface AdminOrderView {
+  _id: string;
+
+  orderNumber: string;
+  customerUserId: string;
+
+  items: OrderItemDocument[];
+  shippingAddress: ShippingAddress;
+
+  subtotal: number;
+  shippingFee: number;
+  taxAmount: number;
+  totalAmount: number;
+  currency: "EUR";
+
+  orderStatus: OrderStatus;
+  paymentStatus: PaymentStatus;
+
+  customerNote: string | null;
+
+  cancellationReason: string | null;
+  cancelledAt: Date | null;
+  cancelledBy: string | null;
 
   createdAt: Date;
   updatedAt: Date;
